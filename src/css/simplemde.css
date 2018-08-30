@@ -118,8 +118,8 @@
 .editor-toolbar a {
     display: inline-block;
     text-align: center;
-    text-decoration: none!important;
-    color: #2c3e50!important;
+    text-decoration: none !important;
+    color: #2c3e50 !important;
     width: 30px;
     height: 30px;
     margin: 0;
@@ -326,3 +326,88 @@
 .CodeMirror .CodeMirror-placeholder {
     opacity: .5;
 }
+
+/** Diy 魔改部分 start */
+.CodeMirror {
+    padding: 0;
+}
+
+.editor-toolbar {
+    border-radius: 0;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    -ms-border-radius: 0;
+    -o-border-radius: 0;
+}
+
+/** 每行行高一致 */
+.cm-header,
+.cm-strong {
+    font-weight: bold;
+}
+
+.CodeMirror .CodeMirror-code .cm-header-1,
+.CodeMirror .CodeMirror-code .cm-header-2,
+.CodeMirror .CodeMirror-code .cm-header-2,
+.CodeMirror .CodeMirror-code .cm-header-4,
+.CodeMirror .CodeMirror-code .cm-header-5,
+.CodeMirror .CodeMirror-code .cm-header-6 {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+/* tools 没有模糊效果 */
+.editor-toolbar {
+    opacity: 1;
+}
+
+/* 全屏效果优化 */
+.editor-toolbar.fullscreen+.CodeMirror {
+    position: fixed;
+    bottom: 0;
+    width: 50%;
+    top: 50px;
+    left: 0;
+    z-index: 9;
+    overflow: auto;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+}
+
+/** 布局重写 */
+.form.markdown-editor {
+    display: flex;
+    position: relative;
+    padding-top: 50px;
+    box-sizing: border-box;
+}
+
+.form.markdown-editor.has-status-bar {
+    padding-bottom: 50%;
+}
+
+.markdown-editor .editor-toolbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.markdown-editor .CodeMirror {
+    flex: 1;
+    position: relative;
+}
+
+.markdown-editor .editor-preview-side {
+    flex: 1;
+    position: relative;
+    top: 0;
+    border-top: 0;
+    border-left: 0;
+}
+
+.form.markdown-editor {
+    position: absolute;
+}
+
+/** Diy 魔改部分 end */

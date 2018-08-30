@@ -10,10 +10,8 @@
       2,
       "double"
     ],
-    "semi": [
-      2,
-      "always"
-    ]
+    "no-debugger": "off",
+    "no-useless-escape": "off"
   },
   "env": {
     "browser": true,

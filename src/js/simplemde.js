@@ -1,21 +1,72 @@
 /*global require,module*/
 "use strict";
 var CodeMirror = require("codemirror");
-require("codemirror/addon/edit/continuelist.js");
-require("./codemirror/tablist");
-require("codemirror/addon/display/fullscreen.js");
-require("codemirror/mode/markdown/markdown.js");
-require("codemirror/addon/mode/overlay.js");
-require("codemirror/addon/display/placeholder.js");
-require("codemirror/addon/selection/mark-selection.js");
+require("codemirror/mode/meta.js");
+require("codemirror/mode/go/go.js");
 require("codemirror/mode/gfm/gfm.js");
+require("codemirror/mode/vue/vue.js");
+require("codemirror/mode/css/css.js");
+require("codemirror/mode/lua/lua.js");
+require("codemirror/mode/php/php.js");
 require("codemirror/mode/xml/xml.js");
-var CodeMirrorSpellChecker = require("codemirror-spell-checker");
+require("codemirror/mode/jsx/jsx.js");
+require("codemirror/mode/sql/sql.js");
+require("codemirror/mode/pug/pug.js");
+require("codemirror/mode/lua/lua.js");
+require("codemirror/mode/sass/sass.js");
+require("codemirror/mode/http/http.js");
+require("codemirror/mode/perl/perl.js");
+require("codemirror/mode/ruby/ruby.js");
+require("codemirror/mode/nginx/nginx.js");
+require("codemirror/mode/shell/shell.js");
+require("codemirror/mode/clike/clike.js");
+require("codemirror/mode/stylus/stylus.js");
+require("codemirror/mode/python/python.js");
+require("codemirror/mode/haskell/haskell.js");
+require("codemirror/mode/markdown/markdown.js");
+require("codemirror/mode/htmlmixed/htmlmixed.js");
+require("codemirror/mode/javascript/javascript.js");
+
+require("codemirror/addon/mode/overlay.js");
+require("codemirror/addon/edit/closetag.js");
+require("codemirror/addon/edit/continuelist.js");
+require("codemirror/addon/edit/closebrackets.js");
+require("codemirror/addon/scroll/annotatescrollbar.js");
+require("codemirror/addon/selection/active-line.js");
+require("codemirror/addon/selection/mark-selection.js");
+// require("codemirror/addon/search/searchcursor.js");
+// require("codemirror/addon/search/matchesonscrollbar.js')；
+// require("codemirror/addon/search/searchcursor.js");
+// require("codemirror/addon/search/match-highlighter.js");
+require("codemirror/addon/fold/foldcode.js");
+require("codemirror/addon/fold/xml-fold.js");
+require("codemirror/addon/fold/foldgutter.js");
+require("codemirror/addon/fold/comment-fold.js");
+require("codemirror/addon/fold/indent-fold.js");
+require("codemirror/addon/fold/brace-fold.js");
+require("codemirror/addon/fold/markdown-fold.js");
+// var CodeMirrorSpellChecker = require("codemirror-spell-checker");
+// 使用二开的源码
+var CodeMirrorSpellChecker = require("./codemirror-spell-checker/spell-checker");
 var marked = require("marked");
 
+// highlight.js 高亮设置
+var hljs = require("highlight.js");
+var hljs_js = require("highlight.js/lib/languages/javascript");
+hljs.registerLanguage("javascript", hljs_js);
 
 // Some variables
 var isMac = /Mac/.test(navigator.platform);
+
+// 全局配置
+var Config = {
+	"tools": {
+		/**
+		 * `预览展开状态` 是否与 `全屏状态` 有关联
+		 */
+		"isSidePrivewAndFullScreenHasRelation": false
+	}
+}
 
 // Mapping of actions that can be bound to keyboard shortcuts or toolbar buttons
 var bindings = {
@@ -221,8 +272,10 @@ function toggleFullScreen(editor) {
 
 
 	// Hide side by side if needed
+	// `全屏`和`预览`是否有关联
 	var sidebyside = cm.getWrapperElement().nextSibling;
-	if(/editor-preview-active-side/.test(sidebyside.className))
+	// if(/editor-preview-active-side/.test(sidebyside.className))
+	if(/editor-preview-active-side/.test(sidebyside.className) && Config.tools.isSidePrivewAndFullScreenHasRelation)
 		toggleSideBySide(editor);
 }
 
@@ -705,7 +758,10 @@ function toggleSideBySide(editor) {
 		// give some time for the transition from editor.css to fire and the view to slide from right to left,
 		// instead of just appearing.
 		setTimeout(function() {
-			if(!cm.getOption("fullScreen"))
+
+			// if(!cm.getOption("fullScreen"))
+			// `侧边栏`和`全屏`不关联
+			if(!cm.getOption("fullScreen") && Config.tools.isSidePrivewAndFullScreenHasRelation)
 				toggleFullScreen(editor);
 			preview.className += " editor-preview-active-side";
 		}, 1);
@@ -1392,7 +1448,16 @@ function SimpleMDE(options) {
 SimpleMDE.prototype.markdown = function(text) {
 	if(marked) {
 		// Initialize
-		var markedOptions = {};
+		var markedOptions = {
+			// renderer: new marked.Renderer(),
+			gfm: true,
+			tables: true,
+			breaks: false,
+			pedantic: false,
+			sanitize: false,
+			smartLists: true,
+			smartypants: false,
+		};
 
 
 		// Update options
@@ -1405,6 +1470,8 @@ SimpleMDE.prototype.markdown = function(text) {
 		if(this.options && this.options.renderingConfig && this.options.renderingConfig.codeSyntaxHighlighting === true && window.hljs) {
 			markedOptions.highlight = function(code) {
 				return window.hljs.highlightAuto(code).value;
+				// console.log('高亮');
+				// return hljs.highlightAuto(code).value;
 			};
 		}
 
@@ -1479,7 +1546,38 @@ SimpleMDE.prototype.render = function(el) {
 		mode.gitHubSpice = false;
 	}
 
-	this.codemirror = CodeMirror.fromTextArea(el, {
+	// 修改设置 start
+	var diy_config = {
+		mode: {
+			name: "gfm",
+			tokenTypeOverrides: {
+				emoji: "emoji"
+			}
+		},
+		/** 显示行号 */
+		lineNumbers: true,
+		// 自动验证错误
+		matchBrackets: true,
+		// 缩进
+		indentUnit: 4,
+		// 是否换行
+		lineWrapping: true,
+		// 点击高亮正行
+		styleActiveLine: true,
+		// 配色(主题)
+		theme: "base16-dark",
+		// 自动补全括号
+		autoCloseBrackets: true,
+		// 自动闭合标签
+		autoCloseTags: true,
+		// 展开折叠
+		foldGutter: true,
+		gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+	}
+	// 修改设置 end
+
+	// simplemde default set
+	var simplemdeDefaultConfig = {
 		mode: mode,
 		backdrop: backdrop,
 		theme: "paper",
@@ -1493,7 +1591,14 @@ SimpleMDE.prototype.render = function(el) {
 		allowDropFileTypes: ["text/plain"],
 		placeholder: options.placeholder || el.getAttribute("placeholder") || "",
 		styleSelectedText: (options.styleSelectedText != undefined) ? options.styleSelectedText : true
-	});
+	}
+
+	// 参数混合
+	Object.assign(simplemdeDefaultConfig, diy_config);
+
+	// this.codemirror = CodeMirror.fromTextArea(el, simplemdeDefaultConfig);
+	this.codemirror = CodeMirror.fromTextArea(el, diy_config);
+
 
 	if(options.forceSync === true) {
 		var cm = this.codemirror;
@@ -1532,7 +1637,7 @@ function isLocalStorageAvailable() {
 		try {
 			localStorage.setItem("smde_localStorage", 1);
 			localStorage.removeItem("smde_localStorage");
-		} catch(e) {
+		} catch (e) {
 			return false;
 		}
 	} else {
