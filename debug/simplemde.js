@@ -44827,6 +44827,9 @@ SimpleMDE.prototype.markdown = function(text) {
 			sanitize: false,
 			smartLists: true,
 			smartypants: false,
+			highlight: function(code) {
+				return hljs.highlightAuto(code).value;
+			}
 		};
 
 
